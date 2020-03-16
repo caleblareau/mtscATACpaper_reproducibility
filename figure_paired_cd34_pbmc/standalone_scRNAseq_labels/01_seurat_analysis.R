@@ -6,8 +6,9 @@ library(cowplot)
 library(BuenColors)
 
 set.seed(1)
-# Script gently adapted from https://github.com/satijalab/Integration2019/blob/master/preprocessing_scripts/pbmc_10k_v3.R
+# Script slightly adapted from https://github.com/satijalab/Integration2019/blob/master/preprocessing_scripts/pbmc_10k_v3.R
 
+# Function to import scRNA-seq data and process based QC
 import_scRNAseq <- function(dir_base, name = "rna"){
   data.dir <- paste0(dir_base)
   raw <- Read10X(data.dir = data.dir); colnames(raw) <- paste0(name, "-", colnames(raw))
@@ -33,7 +34,7 @@ import_scRNAseq <- function(dir_base, name = "rna"){
 # Run the function
 rna <- import_scRNAseq("pbmc_10k_v3")
 
-# QC
+# Basic Seurat functions 
 rna <- NormalizeData(rna)
 rna <- FindVariableFeatures(rna, nfeatures = 3000)
 rna <- ScaleData(rna)
@@ -52,6 +53,8 @@ fpcl <- function(feature){
   FeaturePlot(rna, features = c(feature), min.cutoff = "q8", pt.size = 0.05) + 
     theme_void() +theme(legend.position = "none") 
 }
+
+# Save marker gene plots to support choices
 ggsave(plot_grid(fpcl("CD14"), fpcl("FCGR3A"), fpcl("CD1C"),  fpcl("IL3RA"), fpcl("MX1"), ncol = 5), 
        file = "plots/Monocyte.png",width = 14, height = 3, dpi = 1000)
 
@@ -64,6 +67,8 @@ ggsave(plot_grid(fpcl("CCL5"),  fpcl("NCR3"), fpcl("GZMK"), fpcl("GNLY"), fpcl("
 ggsave(plot_grid(fpcl("CCR7"),  fpcl("CD4"), fpcl("S100A4"), fpcl("TRGC2"), fpcl("FOXP3"), ncol = 5), 
        file = "plots/Tcell.png", width = 14, height = 3, dpi = 500)
 
+
+# Look at cell cycle-- observe that there are no major confounding effects / clusters due to cell cycle
 s.genes <- cc.genes$s.genes
 g2m.genes <- cc.genes$g2m.genes
 rna <- CellCycleScoring(rna, s.features = s.genes, g2m.features = g2m.genes)
@@ -72,10 +77,11 @@ FeaturePlot(rna, features = "G2M.Score")
 ggsave(plot_grid(fpcl("G2M.Score"), ncol = 1), 
        file = "../plots/G2M_score.png", width = 2.8, height = 3, dpi = 500)
 
-
+# Helpter functions for comparing clusters
 FindMarkers(rna, ident.1 = "16", min.pct = 0.3) %>% head(25)
 FindMarkers(rna, ident.1 = "5", ident.2 = "6", min.pct = 0.3) %>% head(25)
 
+# New cluster identities that caleb has made
 new.cluster.ids <- c(
   '0'='Memory_CD4_Tcell',
   '1'='CD14_monocyte',
@@ -98,9 +104,11 @@ new.cluster.ids <- c(
 
 table(rna@meta.data$seurat_clusters)
 
+# Rename clusters
 Idents(rna) <- new.cluster.ids[as.character(rna@meta.data$seurat_clusters)]
 rna$celltype <- Idents(rna)
 table(rna@meta.data$celltype)
 
+# Final visualization and export
 DimPlot(rna, label  = TRUE) + scale_color_manual(values = jdb_palette("corona"))
-saveRDS(rna, "13March2020_recluster_reannotated_10xv3.rds")
+saveRDS(rna, "../../../mtscATACpaper_large_data_files/intermediate/13March2020_recluster_reannotated_10xv3.rds")

@@ -22,7 +22,6 @@ nm <- fread("../scRNAseq_data/nuclear_mutations_pt2/hisnipper_CD19neg.tsv")
 odf$LEF1 <- odf$barcode %in% (nm %>% filter(V3 == "C" & V2 == 109084804) %>% pull(V5) %>% unique())
 odf$HCST <- odf$barcode %in% (nm %>% filter(V3 == "A" & V2 == 36394730) %>% pull(V5) %>% unique())
 
-# be slightly more strict about coverage (10x) because there's a ton of mito mutations otherwise, mostly in B-cells, and it gets over plotted
 odf$score <- ifelse(odf$het4853G_A > 0.9 & odf$cov4853 >= 10, "4853G>A", ifelse(odf$het12980G_A > 0.9 & odf$cov12980 >= 10, "12980G>A", 
                                                                                         ifelse(odf$HCST, "HCST", ifelse(odf$LEF1, "LEF1",ifelse(odf$het4853G_A > 0.9, "4853G>A", ifelse(odf$het12980G_A > 0.9, "12980G>A","znone"))))))
 

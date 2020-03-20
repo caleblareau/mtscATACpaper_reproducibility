@@ -5,7 +5,7 @@ library(dplyr)
 library(ggrastr)
 library(BuenColors)
 
-peaks_pan_heme <-diffloop::bedToGRanges("../data/")
+peaks_pan_heme <-diffloop::bedToGRanges("../data/29August2017_EJCsamples_allReads_500bp.bed")
 
 # function to get counts
 getCountsFromFrags <- function(frag_gz_file,
@@ -83,7 +83,7 @@ importExperiment <- function(exp, peaks, frip_threshold){
   
   SE2 <- SE[, log10(df$depth) >= 3.5 & df$FRIP >= frip_threshold & df$mtDNAcoverage >= 20]
   saveRDS(SE2, file = paste0("../../../mtscATACpaper_large_data_files/intermediate/", exp, ".rds"))
-  write.table(df, file = paste0("../output/", exp, ".barcode_qc.tsv"), sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
+  write.table(df, file = paste0("../output/barcode_qc/", exp, ".barcode_qc.tsv"), sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
   print(dim(SE2))
 }
 

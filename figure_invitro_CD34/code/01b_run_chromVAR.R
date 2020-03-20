@@ -7,19 +7,21 @@ library(data.table)
 library(dplyr)
 register(MulticoreParam(4)) # Use 4 cores
 
+# Pull i from the environment -- executed via a cluster
 args <- commandArgs(trailingOnly = TRUE)
 i <- as.numeric(args[1])
 
 "%ni%" <- Negate("%in%")
-file <- list.files("rds_SE", full.names = TRUE)[i]
+samples <- c("CD34_500_Day08", "CD34_500_Day14", "CD34_800_Day08", "CD34_800_Day14", "CD34_800_Day20")
+
+library <- samples[i]
+file <- paste0("../../../mtscATACpaper_large_data_files/intermediate/",library,".rds")
 SE <- readRDS(file)
 
-bg <- readRDS("chromVAR/backgroundpeaks_ery100.rds")
+# Import background peaks
+bg <- readRDS("../output/chromVAR/chromvar_backgroundpeaks_invitro.rds")
 
-# Do it for a specific experiment
-outname <- gsub(".rds", "", list.files("rds_SE", full.names = FALSE)[i])
-
-# Gently modify counts to work with chromVAR
+# Gently modify counts to work with chromVAR -- make sure that each peak has a read; make sure no one peak has a crazy # of counts
 s <- Matrix::summary(counts(SE))
 new <- which(1:dim(SE)[1] %ni% s$i)
 SE_new <- SummarizedExperiment(
@@ -34,6 +36,7 @@ SE_new <- SummarizedExperiment(
 ss <- Matrix::summary(counts(SE_new))
 new <- which(1:dim(SE_new)[1] %ni% ss$i)
 
-mm <- readRDS("chromVAR/motifmatches_humanPWMS2.rds")
+mm <- readRDS("../output/chromVAR/motifmatches_humanPWMS2.rds")
 dev <- computeDeviations(SE_new, mm, background_peaks = bg, expectation = computeExpectations(SE_new))
-saveRDS(dev, file = paste0("chromVAR/", outname, "_tf_deviations.rds"))
+saveRDS(dev, file = paste0("../output/chromVAR/", library, "_tf_deviations.rds"))
+

@@ -11,26 +11,33 @@ library(ggrastr)
 set.seed(1)
 "%ni%" <- Negate("%in%")
 
+# Import the peaks x cells summarized experiment object
 import_SE <- function(library){
-  x <- readRDS(paste0("rds_SE/",library,".rds"))
+  x <- readRDS(paste0("../../../mtscATACpaper_large_data_files/intermediate/",library,".rds"))
   colData(x)$library <- library
   colnames(x) <- paste0(library,"-", colnames(x))
   return(x)
 }
 
+# Import deviations from chromVAR for annotation
 import_CV <- function(library){
-  x <- readRDS(paste0("chromVAR/",library,"_tf_deviations.rds"))
+  x <- readRDS(paste0("../output/chromVAR/",library,"_tf_deviations.rds"))
   colData(x)$library <- library
   colnames(x) <- paste0(library,"-", colnames(x))
   rownames(x) <- make.unique(rowData(x)$name)
   return(assays(x)[["z"]])
 }
 
-libs <- c("CD34_500", "CD34_500_Epo", "CD34_800", "CD34_800_CC100", "CD34_800_Epo")
+libs <- c("CD34_500_Day08", "CD34_500_Day14", "CD34_800_Day08", "CD34_800_Day14", "CD34_800_Day20")
 SE <- do.call("cbind", lapply(libs, import_SE))
 devs <- do.call("cbind", lapply(libs, import_CV)) %>% t()
 
 stopifnot(all(rownames(devs) == colnames(SE)))
+
+#-------------------------------------
+# Everything below is code adapted from
+# 
+#-------------------------------------
 
 #Binarize Sparse Matrix
 binarizeMat <- function(mat){
@@ -277,19 +284,21 @@ varPeaks <- head(order(matrixStats::rowVars(logMat), decreasing = TRUE), nTop) #
 
 #Run LSI 2nd Iteration
 lsi2 <- calcLSI(assay(SE)[varPeaks,,drop=FALSE], nComponents = 25, binarize = TRUE, nFeatures = NULL)
-clust2 <- louvainIgraphClusters(lsi2[[1]], 20)
+clust2 <- louvainIgraphClusters(lsi2[[1]], 30)
 length(unique(clust2))
 
 #UMAP
 set.seed(1)
 umap <- umap::umap(
   lsi2$matSVD[,1:25], 
-  n_neighbors = 55, # original 55
-  min_dist = 0.45, # original 0.45
+  n_neighbors = 55, 
+  min_dist = 0.45, 
   metric = "euclidean", 
   verbose = TRUE    )
 set.seed(10)
-plot_df <- data.frame(umap$layout, clusters = clust2, colData(SE),
+
+# Only multiplying by -1 from the umap output to be more consistent with a previous version
+plot_df <- data.frame(umap$layout*-1, clusters = clust2, colData(SE),
                       data.matrix(devs[,c("GATA1", "CEBPA", "SPI1", "RUNX1", "PAX5", "KLF1", "IRF8")]))
 
 # Plot TFs
@@ -313,29 +322,33 @@ p4 <- ggplot(plot_df, aes(x= X1, y = X2, color = ifelse(CEBPA > 10, 10, ifelse(C
   scale_color_gradientn(colors = jdb_palette("brewer_spectra")) +
   theme_void() +theme(legend.position = "none") 
 
-cowplot::ggsave(cowplot::plot_grid(p1, p2, p3, p4, nrow = 2), filename = "plots/4main.png",
+cowplot::ggsave2(cowplot::plot_grid(p1, p2, p3, p4, nrow = 2), filename = "../plots/4TFs.png",
                 width = 2.5, height = 2.5, units = "in", dpi = 1000)
 
-re_anno <- c('ery5', 'ery2', 'prog_my', 'ery3', 'my3', 'ery1', 'my2', 'prog', 'my4', 'my1', 'mix', 'prog_ery', 'my5', 'ery4', 'ery6')
-names(re_anno) <- paste0("mc", as.character(1:15))
+re_anno <- c(
+  'ery2', 'prog_my', 'ery4', 'ery6', 'my1',
+  'my2','ery1','prog', 'prog_ery', 'ery3',
+  'mix','my3','my2','my3','ery5',
+  'my4'
+)
+names(re_anno) <- paste0("mc", as.character(1:16))
 plot_df$new_name <- re_anno[as.character(plot_df$clusters)]
 
 mean_df <- plot_df %>% group_by(clusters) %>%
   summarize(X1 = mean(X1), X2 = mean(X2))
 ggplot(mean_df, aes(x= X1, y = X2, color = clusters, label = clusters)) +
   geom_text()
+ggplot(plot_df, aes(x= X1, y = X2, color = clusters, label = clusters)) +
+  geom_point() + geom_text(data = mean_df, color= "black")
 
 mean_df2 <- plot_df %>% group_by(new_name) %>%
   summarize(X1 = mean(X1), X2 = mean(X2))
 ggplot(mean_df2, aes(x= X1, y = X2, color = new_name, label = new_name)) +
   geom_text()
 
-
-
-
-
+# Semi-supervised trajectory inference
 trajectory1 <- c('prog', 'prog_ery', 'ery1', 'ery2', 'ery3', 'ery4', 'ery5', 'ery6')
-trajectory2 <- c('prog', 'prog_my', 'my1', 'my2', 'my3', 'my4', 'my5')
+trajectory2 <- c('prog', 'prog_my', 'my1', 'my2', 'my3', 'my4')
 
 #Align single cells to Trajectory
 df <- data.frame(row.names = rownames(plot_df),
@@ -345,6 +358,7 @@ df <- data.frame(row.names = rownames(plot_df),
 trajAligned1 <- alignTrajectory(df, trajectory1)
 trajAligned2 <- alignTrajectory(df, trajectory2)
 
+# simple function to add NAs to cells not in trajecotry
 augment <- function(df_all, df_t){
   need <- !(rownames(df_all) %in% rownames(df_t))
   dfa <- df_all[need,c("X1", "X2", "new_name")]; dfa$ps <- NA
@@ -356,20 +370,21 @@ augment <- function(df_all, df_t){
 df_ery <- augment(plot_df, trajAligned1[[1]])
 df_my <- augment(plot_df, trajAligned2[[1]])
 
+# Extract the pseudotime
 dfT_ery <- trajAligned1[[2]]
 dfT_my <- trajAligned2[[2]]
 
-
-pB0 <- ggplot(plot_df, aes(x= X1, y = X2, color = new_name)) +
+# Make plots for QC and for pseudotime
+pB_name <- ggplot(plot_df, aes(x= X1, y = X2, color = clusters)) +
   geom_point_rast(raster.dpi = 500, size = 0.1) +
   theme_void() +theme(legend.position = "none") 
 
-pB00 <- ggplot(shuf(plot_df), aes(x= X1, y = X2, color = log10(mtDNAcoverage))) +
+pB_mtdna <- ggplot(shuf(plot_df), aes(x= X1, y = X2, color = log10(mtDNAcoverage))) +
   geom_point_rast(raster.dpi = 500, size = 0.1) +
   scale_color_gradientn(colors = jdb_palette("solar_extra"), limits = c(0,3)) +
   theme_void() + theme(legend.position = "none") 
 
-pB1 <- ggplot(df_ery, aes(x,y,color=pseudotime)) + 
+p_PS1 <- ggplot(df_ery, aes(x,y,color=pseudotime)) + 
   geom_point_rast(raster.dpi = 500, size = 0.1) +
   theme_void() +
   viridis::scale_color_viridis(na.value = "lightgrey") +
@@ -377,7 +392,7 @@ pB1 <- ggplot(df_ery, aes(x,y,color=pseudotime)) +
             arrow = arrow(type = "open", angle = 30, length = unit(0.05, "inches"))) +
   theme(legend.position = "none") 
 
-pB2 <- ggplot(df_my, aes(x,y,color=pseudotime)) + 
+p_PS2 <- ggplot(df_my, aes(x,y,color=pseudotime)) + 
   geom_point_rast(raster.dpi = 500, size = 0.1) +
   theme_void() +
   viridis::scale_color_viridis(na.value = "lightgrey") +
@@ -385,14 +400,15 @@ pB2 <- ggplot(df_my, aes(x,y,color=pseudotime)) +
             arrow = arrow(type = "open", angle = 30, length = unit(0.05, "inches"))) +
   theme(legend.position = "none")
 
-cowplot::ggsave(cowplot::plot_grid(pB0, pB00, pB1, pB2, nrow = 2), filename = "plots/4main_new.png",
+cowplot::ggsave2(cowplot::plot_grid(pB_name, pB_mtdna, p_PS1, p_PS2, nrow = 2),
+                filename = "../plots/trajectories_QC.png",
                 width = 2.5, height = 2.5, units = "in", dpi = 1000)
 
+# Export pseudotime inference for later use
 save(plot_df, df_ery, df_my, dfT_ery, dfT_my,
-     file = "trajectory_inferences.17november.rda")
+     file = "../output/trajectory_inferences.18march2020.rda")
 
-
-
+# Make final supplemental panels
 plot_df$density <- get_density(plot_df$X1, plot_df$X2)
 pdens <- ggplot(plot_df, aes(x= X1, y = X2, color = density)) +
   geom_point_rast(raster.dpi = 500, size = 0.1) +
@@ -403,7 +419,8 @@ plib <- ggplot(shuf(plot_df), aes(x= X1, y = X2, color = library, label = librar
   geom_point_rast(raster.dpi = 500, size = 0.1) + theme_void() + 
   scale_color_manual(values = c("orange", "red","dodgerblue", "#008080", "purple4")) +
   theme(legend.position = "none")
-cowplot::ggsave(cowplot::plot_grid(pdens, plib, nrow = 1), filename = "plots/twoSupp.png",
+
+cowplot::ggsave2(cowplot::plot_grid(pdens, plib, nrow = 1), filename = "../plots/twoSupp.png",
                 width = 3.4, height = 1.7, units = "in", dpi = 1000)
 
 

@@ -13,10 +13,10 @@ set.seed(1)
 
 # Import granja data
 if(FALSE){
-  granja_mat <- fread("zcat < granja_cd34/GSE129785_scATAC-Hematopoiesis-CD34.mtx.gz", skip = 2)
+  granja_mat <- fread("../../../mtscATACpaper_large_data_files/source/other/GSE129785_scATAC-Hematopoiesis-CD34.mtx.gz", skip = 2)
   sm <- sparseMatrix(i = granja_mat[["V1"]], j = granja_mat[["V2"]], x = granja_mat[["V3"]])
-  colData <- fread("granja_cd34/GSE129785_scATAC-Hematopoiesis-CD34.cell_barcodes.txt") %>% data.frame()
-  peaks <- fread("granja_cd34/GSE129785_scATAC-Hematopoiesis-CD34.peaks.bed") %>%
+  colData <- fread("../data/granja_cd34/granja_cd34/GSE129785_scATAC-Hematopoiesis-CD34.cell_barcodes.txt") %>% data.frame()
+  peaks <- fread("../data/granja_cd34/GSE129785_scATAC-Hematopoiesis-CD34.peaks.bed") %>%
     data.frame() %>% setnames(c('chr', 'start', 'end')) %>% makeGRangesFromDataFrame()
   SEall <- SummarizedExperiment(
     rowData = peaks,
@@ -27,8 +27,8 @@ if(FALSE){
   c1boo <-  colData$Group %in% c("BM_pDC", "CLP", "CMP", "GMP", "HSC", "LMPP", "MEP", "Monocytes", "MPP")
   SE_CD34 <- SEall[,cd34boo]
   SE_C1 <- SEall[,c1boo]
-  saveRDS(SE_C1, file = "granja_cd34/granja_published_C1.rds")
-  saveRDS(SE_CD34, file = "granja_cd34/granja_10X_CD34.rds")
+  saveRDS(SE_C1, file = "../data/granja_cd34/granja_published_C1.rds")
+  saveRDS(SE_CD34, file = "")
   
 }
 SE <- readRDS("granja_cd34/granja_10X_CD34.rds")
@@ -267,37 +267,3 @@ projection_df_p <- data.frame(
   umap2 = c(umapProjectionPearson[,2], plot_df$X2),
   bc= c(rownames(umapProjectionPearson), plot_df$Group_Barcode)
 )
-
-het_df <- fread("data/PT3_all_libraries.tsv") %>% filter(cell_clust == "BM_CD34")
-mds_del <- fread("../del7_CD34.tsv")
-
-mdf <- left_join(projection_df_p, het_df, by = c("bc" = "cell_id"))
-mdf2 <- left_join(mdf, mds_del, by = c("bc" = "barcodes"))
-mdf2$deleted <- ifelse(mdf2$percent_del < 25, "Monosomy7", "WT7")
-
-p2 <- ggplot(mdf[dim(mdf)[1]:1,], aes(x= umap1, y = umap2, color = celltype, label = celltype)) +
-  geom_point(size = 0.5) +
-  labs(x = "UMAP1", y= "UMAP2", color = "Sample") +
-  pretty_plot() + L_border() + theme(legend.position = "bottom") +
-  scale_color_manual(values = c("lightgrey", "firebrick"))
-
-p3 <- ggplot(mdf[dim(mdf)[1]:1,], aes(x= umap1, y = umap2, color = corr_heteroplasmy, label = corr_heteroplasmy)) +
-  geom_point(size = 0.5) +
-  scale_color_gradientn(colors = jdb_palette("solar_extra"), na.value = "lightgrey") +
-  labs(x = "UMAP1", y= "UMAP2", color = "Deletion %") +
-  pretty_plot() + L_border() + theme(legend.position = "bottom")
-
-p4 <- ggplot(mdf2[dim(mdf2)[1]:1,], aes(x= umap1, y = umap2, color = deleted)) +
-  geom_point(size = 0.5) +
-  labs(x = "UMAP1", y= "UMAP2", color = "") +
-  pretty_plot() + L_border() + theme(legend.position = "bottom") +
-  scale_color_manual(values = c("firebrick", "dodgerblue3"), na.value = "lightgrey")
-
-ggplot(mdf2 %>% filter(celltype == "Pearson"), aes(x = deleted, y = corr_heteroplasmy)) +
-  geom_beeswarm(size = 0.2) + geom_boxplot(color = "firebrick", fill = NA) +
-  pretty_plot() + L_border() + theme(legend.position = "bottom") +
-  labs(x = "", y = "Heteroplasmy")
-
-cowplot::ggsave(cowplot::plot_grid(p0, p1, p2, p3, p4, p5, nrow = 3), 
-                file = "Pearson_CD34_embedding.pdf", width = 8, height = 13)
-

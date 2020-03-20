@@ -40,16 +40,6 @@ d2_mgatk <- readRDS("../output/Donor2_all_mgatk_variants.rds") %>% pull(variant)
 
 
 # Function to compute cell-cell mtDNA distance as well as whether or not they are in the same colony
-compute_mito_dist <- function(variants, af){
-  dm <- data.matrix(af[variants,])
-  dm[dm < 0.01] <- 0
-  dm[dm > 0.20] <- 0.20
-  metric <- as.numeric(dist(t(dm)))
-  colony <- str_split_fixed(colnames(af), "_", 3)[,2]
-  colonymat <-   model.matrix(~0+colony)
-  data.frame(same_colony = (-1*as.numeric(dist(colonymat, method = "binary"))) +1, 
-             similarity = 1 + -1*metric)
-}
 
 compute_mito_dist_cor <- function(variants, af){
   
@@ -57,10 +47,10 @@ compute_mito_dist_cor <- function(variants, af){
   dm <- data.matrix(af[variants,])
   
   # compute the cell-cell correlation
-  cor_mat <- cor(dm)
-  cor_mat[upper.tri(cor_mat, diag = TRUE)] <- NA
+  cor_mat <- cor(sqrt(dm))
+  cor_mat[upper.tri(cor_mat, diag = TRUE)] <- 999
   cor_vec <- as.numeric(cor_mat)
-  cor_vec <- cor_vec[!is.na(cor_vec)]
+  cor_vec <- cor_vec[cor_vec != 999]
   
   # Append whether or not the cell was from the same colony
   colony <- str_split_fixed(colnames(af), "_", 3)[,2]
@@ -123,4 +113,5 @@ p3 <- ggplot(rbind(dfo1, dfo2) %>% filter(curvetypes == "ROC"), aes(x = sample, 
   pretty_plot(fontsize = 8) + L_border() + scale_y_continuous(expand = c(0,0), limits = c(0,1)) +
   labs(x = "", y = "AUROC", fill = "Variants") + ggtitle(label = ".")
 
-cowplot::ggsave(cowplot::plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.5)), file = "out_plots/ROC_comparison_variant_callers.pdf", width = 7.5, height = 2)
+cowplot::ggsave2(cowplot::plot_grid(p1, p2, p3, nrow = 1, rel_widths = c(1, 1, 1.5)),
+                 file = "../plots/ROC_comparison_variant_callers.pdf", width = 7.5, height = 2)

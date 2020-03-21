@@ -28,6 +28,7 @@ misc_df <- data.frame(rowData(mut_se))
 filter_df <- misc_df %>%  filter(n_cells_detected >= 5 & strand_correlation > 0.65 & log10(vmr) > -2)
 dim(filter_df)
 
+# Make the standard variant calling plot
 p1 <- ggplot(misc_df %>%  filter(n_cells_detected >= 5 ), aes(x = strand_correlation, y = log10(vmr), color = log10(vmr) > -2 & strand_correlation > 0.65)) +
   geom_point(size = 0.4) + scale_color_manual(values = c("black", "firebrick")) +
   labs(color = "HQ", x = "Strand concordance", y = "log VMR") +

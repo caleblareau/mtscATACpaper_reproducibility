@@ -63,6 +63,8 @@ SE6 <- getCountsFromFrags_GM11906("../../../mtscATACpaper_large_data_files/sourc
 SE <- cbind(SE1, SE6)
 dim(SE)
 
+# Now visualize QC
+
 df <- data.frame(colData(SE))
 
 df$log10_mtDNA <- log10(df$mean_cov + 1)

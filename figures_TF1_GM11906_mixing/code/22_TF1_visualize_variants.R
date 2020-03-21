@@ -8,34 +8,25 @@ library(ggrastr)
 library(irlba)
 library(Seurat)
 
-
 "%ni%" <- Negate("%in%")
 perc.rank <- function(x) trunc(rank(x))/length(x)
+source("../../global_functions/get_allele_freq_mat.R")
 
+#Import data
 p1 <- readRDS("../data/big_gi/compare_cor/Mix_Fix_1h_CR-mtMask_mgatk_z.rds"); colnames(p1) <- paste0("p1_", colnames(p1))
 p6 <- readRDS("../data/big_gi/compare_cor/Mix_Fix_6h_CR-mtMask_mgatk_z.rds"); colnames(p6) <- paste0("p6_", colnames(p6))
 SE <- cbind(p1, p6)
 rm(p1); rm(p6)
 
+# Assign celltypes
 rbind(read.table("../output/data1_meta.tsv", header = TRUE) %>% mutate(cell_id2 = paste0("p1_", cell_id)), 
       read.table("../output/data6_meta.tsv", header = TRUE) %>% mutate(cell_id2 = paste0("p6_", cell_id))) %>% filter(assign == "TF1") %>%
   filter(mean_cov > 50) -> TF_cells_df
 
 SE <- SE[,as.character(TF_cells_df$cell_id2)]
-
-# Process mutations
-cov <- assays(SE)[["coverage"]]+ 0.001
-ref_allele <- as.character(rowRanges(SE)$refAllele)
-
-getMutMatrix <- function(letter){
-  mat <- (assays(SE)[[paste0(letter, "_counts_fw")]] + assays(SE)[[paste0(letter, "_counts_rev")]]) / cov
-  rownames(mat) <- paste0(as.character(1:dim(mat)[1]), toupper(ref_allele), ">", letter)
-  ref_letter <- toupper(ref_allele)
-  return(mat[ref_letter != letter & ref_letter != "N",])
-}
-
+mmat <- 
+  
 # Get mutation matrix and threshold
-mmat <- rbind(getMutMatrix("A"), getMutMatrix("C"), getMutMatrix("G"), getMutMatrix("T"))
 vars <- read.table("../data/VMR_processed_variants_ndetect.tsv", header = FALSE, stringsAsFactors = FALSE)[,1]
 afp <- mmat[vars,]
 afp[afp>0.2] <- 0.2
@@ -132,6 +123,6 @@ matty <- sapply(names(vec_go), function(cluster){
 })
 
 mito.nj <- phangorn::NJ(dist(t(sqrt(matty))))
-pdf("../output/plots/tree_me.pdf", width = 4, height = 4)
+pdf("../plots/tree_me.pdf", width = 4, height = 4)
 plot(mito.nj)
 dev.off()

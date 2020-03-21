@@ -5,23 +5,10 @@ library(BuenColors)
 library(ComplexHeatmap)
 library(circlize)
 "%ni%" <- Negate("%in%")
+source("../../global_functions/get_allele_freq_mat.R")
 
 # This is a first pass QC script to find homoplasmic variants present in either cell line
 # Not used in the final figures for the manuscript
-
-computeAFMutMatrix <- function(SE){
-  cov <- assays(SE)[["coverage"]]+ 0.001
-  ref_allele <- as.character(rowRanges(SE)$refAllele)
-  
-  getMutMatrix <- function(letter){
-    mat <- (assays(SE)[[paste0(letter, "_counts_fw")]] + assays(SE)[[paste0(letter, "_counts_rev")]]) / cov
-    rownames(mat) <- paste0(as.character(1:dim(mat)[1]), toupper(ref_allele), ">", letter)
-    return(mat[toupper(ref_allele) != letter,])
-  }
-  
-  rbind(getMutMatrix("A"), getMutMatrix("C"), getMutMatrix("G"), getMutMatrix("T"))
-  
-}
 
 # Import AFs
 SE <- readRDS("../../../mtscATACpaper_large_data_files/source/mgatk_output/Mix_Fix_6h_CR-mtMask_mgatk.rds")

@@ -26,6 +26,7 @@ importQC <- function(raw_name, name, n = 1000){
 
 }
 
+# Import the original screen conditions into one data frame
 screen_df <- rbindlist(list(
   importQC("Mix_1", "aRegular"),
   importQC("Mix_2_NP40", "Condition1"),
@@ -36,10 +37,10 @@ screen_df <- rbindlist(list(
 ))
 
 # Summarize values for the initial screen of conditions
-
 screen_df %>% group_by(Experiment) %>%
   summarize(median(MitoProp)*100, median(DNaseProp)*100, median(TSSProp)*100, median(LibraryComplexity))
 
+# Visualize essential attributes -- mito and accessible chromatin enrichment
 pA <- ggplot(screen_df, aes(x = Experiment, y = MitoProp*100)) +
   geom_boxplot(outlier.shape = NA, fill = NA, width = 0.2) + geom_violin(fill = NA) +
   coord_cartesian(ylim = c(0, 50)) + scale_y_continuous(expand = c(0,0)) + 
@@ -52,11 +53,9 @@ pB <- ggplot(screen_df, aes(x = Experiment, y = DNaseProp*100)) +
   pretty_plot(fontsize = 7) + theme(legend.position = "bottom") + labs(x = "", color = "", y = "% reads in DNase") +
   scale_color_manual(values = "black") + L_border() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-
 cowplot::ggsave2(cowplot::plot_grid(pA, pB, nrow = 1), file = "../plots/Panel1BC.pdf", width = 3.7, height = 2)
 
 # Summarize additional plots for the supplement
-
 pC <- ggplot(screen_df, aes(x = Experiment, y = TSSProp*100)) +
   geom_boxplot(outlier.shape = NA, fill = NA, width = 0.2) + geom_violin(fill = NA) +
   coord_cartesian(ylim = c(0, 65)) + scale_y_continuous(expand = c(0,0)) + 
@@ -74,7 +73,6 @@ pD <-  ggplot(screen_df, aes(x = Experiment, y = log10(LibraryComplexity))) +
 cowplot::ggsave2(pD, file = "../plots/library_complexity.pdf", width = 1.8, height = 1.8)
 
 # Characterize the effects of mtDNA masking
-
 mtMappingRatesDF <- rbindlist(list(
   importQC("Mix_1", "aRegular_NoMask"), 
   importQC("Mix_1_CR-mtMask", "aRegular_Mask"),
@@ -86,6 +84,8 @@ mtMappingRatesDF <- rbindlist(list(
   importQC("Mix_Fix_6h_CR-mtMask", "cwFA_Mask", n = 500)
 ))
 
+
+# Summarize mtDNA mapping rates over the various conditions (include the mask)
 mtMappingRatesDF %>% group_by(Experiment) %>%
   summarize(mDNase = median(DNaseProp), mMitoProp = median(MitoProp), mLibraryComplexity = median(LibraryComplexity))
 

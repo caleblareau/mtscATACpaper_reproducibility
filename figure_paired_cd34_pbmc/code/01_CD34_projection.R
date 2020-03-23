@@ -28,10 +28,21 @@ if(FALSE){
   SE_CD34 <- SEall[,cd34boo]
   SE_C1 <- SEall[,c1boo]
   saveRDS(SE_C1, file = "../data/granja_cd34/granja_published_C1.rds")
-  saveRDS(SE_CD34, file = "")
+  saveRDS(SE_CD34, file = "../../../mtscATACpaper_large_data_files/intermediate/granja_10X_CD34.rds")
   
 }
-SE <- readRDS("granja_cd34/granja_10X_CD34.rds")
+
+import_se <- function(library){
+  se <- readRDS(paste0("../../../mtscATACpaper_large_data_files/intermediate/",library,".rds"))
+  colnames(se) <- paste0(library, "_", colnames(se))
+  se
+}
+
+
+SE <- cbind(
+  import_se("CD34_G10"),
+  import_se("CD34_H8")
+)
 
 #Binarize Sparse Matrix
 binarizeMat <- function(mat){
@@ -201,12 +212,7 @@ classify_from_reference <- function(A, B){
 }
 
 
-
-#Set Clustering Parameters
-nPCs1 <- 1:15
-nPCs2 <- 1:15
-resolution <- 0.8 #clustering resolution
-nTop <- 10000 #number of variable peaks
+nTop = 25000
 
 #Run LSI 1st Iteration
 lsi1 <- calcLSI(assay(SE), nComponents = 25, binarize = TRUE, nFeatures = NULL)
@@ -220,33 +226,35 @@ varPeaks <- head(order(matrixStats::rowVars(logMat), decreasing = TRUE), nTop) #
 
 #Run LSI 2nd Iteration
 lsi2 <- calcLSI(assay(SE)[varPeaks,,drop=FALSE], nComponents = 25, binarize = TRUE, nFeatures = NULL)
-clust2 <- louvainIgraphClusters(lsi2[[1]], 10)
+clust2 <- louvainIgraphClusters(lsi2[[1]][,c(2:25)], 30)
 length(unique(clust2))
 
 #UMAP
 set.seed(1)
 umap <- umap::umap(
-  lsi2$matSVD[,nPCs1], 
-  n_neighbors = 40, # original 55
+  lsi2$matSVD[,2:25], 
+  n_neighbors = 55, # original 55
   min_dist = 0.45, # original 0.45
-  metric = "euclidean", 
+  metric = "cosine", 
   verbose = TRUE    )
 set.seed(10)
-plot_df <- data.frame(umap$layout, colData(SE), cl_clust = clust2)
+
+# Multiply by -1 to make the pseudotime read left to right
+plot_df <- data.frame(umap$layout*-1, colData(SE), Clusters = clust2)
 
 p0 <- ggplot(plot_df, aes(x= X1, y = X2, color = Clusters)) +
    geom_point(size = 0.5) +
    labs(x = "UMAP1", y= "UMAP2", color = "") +
   pretty_plot() + L_border() + theme(legend.position = "bottom")
 
-sel <- readRDS("granja_cd34/granja_published_C1.rds")
+sel <- readRDS("../data/granja_cd34/granja_published_C1.rds")
 lsiProjection <- projectLSI((assay(sel)[varPeaks,]), lsi2)
-umapProjection <- round(predict(umap, data.matrix(lsiProjection[,nPCs1])), 2)
+umapProjection <- round(predict(umap, data.matrix(lsiProjection[,2:25])), 2)
 
 projection_df <- data.frame(
   celltype = c(gsub("BM_", "", colData(sel)$Group), rep("none", dim(plot_df)[1])),
-  umap1 = c(umapProjection[,1], plot_df$X1),
-  umap2 = c(umapProjection[,2], plot_df$X2)
+  umap1 = c(umapProjection[,1]*-1, plot_df$X1),
+  umap2 = c(umapProjection[,2]*-1, plot_df$X2)
 )
 
 p1 <- ggplot(projection_df[dim(projection_df)[1]:1,], aes(x= umap1, y = umap2, color = celltype, label = celltype)) +
@@ -256,14 +264,5 @@ p1 <- ggplot(projection_df[dim(projection_df)[1]:1,], aes(x= umap1, y = umap2, c
   scale_color_manual(values = c(ejc_color_maps, "none" = "lightgrey", "Monocytes" = "orange2"))
 p1
 
-# Now project the Pearson cells
-pearson_cd34 <- readRDS("rds_SE/Pearson_CD34_QC.rds")
-lsiProjectionPearson <- projectLSI((assay(pearson_cd34)[varPeaks,]), lsi2)
-umapProjectionPearson <- round(predict(umap, data.matrix(lsiProjectionPearson[,1:25])), 2)
+save(projection_df, plot_df, file = "../output/CD34_umap_embedding_granja.rda")
 
-projection_df_p <- data.frame(
-  celltype = c(rep("Pearson", length(umapProjectionPearson[,1])), rep("none", dim(plot_df)[1])),
-  umap1 = c(umapProjectionPearson[,1], plot_df$X1),
-  umap2 = c(umapProjectionPearson[,2], plot_df$X2),
-  bc= c(rownames(umapProjectionPearson), plot_df$Group_Barcode)
-)

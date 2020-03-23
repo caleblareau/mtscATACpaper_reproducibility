@@ -81,8 +81,9 @@ importExperiment <- function(exp, peaks, frip_threshold){
   vec <- as.numeric(cov_mtDNA$depth); names(vec) <- as.character(cov_mtDNA$sample)
   colData(SE)$mtDNAcoverage <- vec[as.character(df$sample)] %>% unname()
   df$mtDNAcoverage <- vec[as.character(df$sample)] %>% unname()
+  df$keep <- log10(df$depth) >= 3 & df$FRIP >= frip_threshold & df$mtDNAcoverage >= 20
   
-  SE2 <- SE[, log10(df$depth) >= 3.5 & df$FRIP >= frip_threshold & df$mtDNAcoverage >= 20]
+  SE2 <- SE[, df$keep]
   saveRDS(SE2, file = paste0("../../../mtscATACpaper_large_data_files/intermediate/", exp, ".rds"))
   write.table(df, file = paste0("../output/barcode_qc/", exp, ".barcode_qc.tsv"), sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
   print(dim(SE2))

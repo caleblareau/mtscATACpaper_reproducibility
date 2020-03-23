@@ -1,6 +1,8 @@
 library(dplyr)
 library(data.table)
 library(stringr)
+library(BuenColors)
+library(ggrastr)
 
 # Variants for each
 tf1_vars <- c("9824T>C", "6680T>C", "8701A>G", "15301G>A", "12811T>C", "14783T>C", "4164A>G", "7853G>A", 
@@ -82,12 +84,22 @@ estimate_contamination(FA, TRUE)
 estimate_contamination(FA, FALSE)
 
 
-ggplot(FA %>% filter(TF1 > 0 & MERRF > 0), aes(x = TF1, y = MERRF, color = minor_population)) +
-  geom_point() + scale_y_log10(breaks = c(10, 100, 1000), expand = c(0,0)) + scale_x_log10(breaks = c(10, 100, 1000), expand = c(0,0)) +
+
+pFA <- ggplot(FA %>% filter(TF1 > 0 & MERRF > 0), aes(x = TF1, y = MERRF, color = minor_population)) +
+  geom_point_rast(size = 5, raster.dpi = 300) + scale_y_log10(breaks = c(10, 100, 1000), expand = c(0,0)) +
+  scale_x_log10(breaks = c(10, 100, 1000), expand = c(0,0)) +
   pretty_plot(fontsize = 8) + L_border() +
-  scale_color_gradientn(colors = jdb_palette("flame_light")) +
+  scale_color_gradientn(colors = jdb_palette("flame_flame")) +
   theme(legend.position = "none")
 
+pNOFA <- ggplot(noFA %>% filter(TF1 > 0 & MERRF > 0), aes(x = TF1, y = MERRF, color = minor_population)) +
+  geom_point_rast(size = 5, raster.dpi = 300) + scale_y_log10(breaks = c(10, 100, 1000), expand = c(0,0)) +
+  scale_x_log10(breaks = c(10, 100, 1000), expand = c(0,0)) +
+  pretty_plot(fontsize = 8) + L_border() +
+  scale_color_gradientn(colors = jdb_palette("flame_flame")) +
+  theme(legend.position = "none")
+
+cowplot::ggsave2(cowplot::plot_grid(pNOFA,pFA,nrow = 1), width = 3.5, height = 1.7, file = "../plots/contamination_compare.pdf")
 
 #----
 # Examine the variable fixation conditions

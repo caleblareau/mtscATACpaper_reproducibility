@@ -151,7 +151,7 @@ FeaturePlot(
 #--- 
 mut_se <- call_mutations_mgatk(mgatk_se[,colnames(crc)])
 misc_df <- data.frame(rowData(mut_se))
-filter_df <- misc_df %>% dplyr::filter(n_cells_detected >= 5 & strand_correlation >= 0.65 & log10(vmr) > -2)
+filter_df <- misc_df %>% dplyr::filter(n_cells_conf_detected >= 5 & strand_correlation >= 0.65 & log10(vmr) > -2)
 dim(filter_df)
 
 full_df <- data.frame(

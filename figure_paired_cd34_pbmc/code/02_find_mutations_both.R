@@ -29,13 +29,13 @@ SE_CD34 <- cbind(import_mgatk("CD34_G10"), import_mgatk("CD34_H8"))
 # Call variants
 mut_se_CD34 <- call_mutations_mgatk(SE_CD34)
 misc_df_CD34 <- data.frame(rowData(mut_se_CD34))
-vars_cd34 <- misc_df_CD34 %>%  filter(n_cells_detected >= 5 & strand_correlation > 0.65 & log10(vmr) > -2 & mean_coverage >= 20) %>% pull(variant)
+vars_cd34 <- misc_df_CD34 %>%  filter(n_cells_conf_detected >= 5 & strand_correlation > 0.65 & log10(vmr) > -2 & mean_coverage >= 20) %>% pull(variant)
 
 # Mark transitions
 transition <- c("C>T", "G>A", "A>G", "T>C")
 misc_df_CD34$transition <- misc_df_CD34$nucleotide %in% transition
 
-pC <- ggplot(misc_df_CD34 %>%  filter(n_cells_detected >= 5 & mean_coverage >= 20), aes(x = strand_correlation, y = log10(vmr), color = transition)) +
+pC <- ggplot(misc_df_CD34 %>%  filter(n_cells_conf_detected >= 5 & mean_coverage >= 20), aes(x = strand_correlation, y = log10(vmr), color = transition)) +
   geom_point(size = 0.4) + scale_color_manual(values = c("black", "dodgerblue")) +
   labs(color = "HQ", x = "Strand concordance", y = "log VMR") +
   pretty_plot(fontsize = 8) + L_border() +
@@ -53,13 +53,13 @@ SE_PBMC <- cbind(import_mgatk("PBMC_H9"), import_mgatk("PBMC_H10"))
 # Call variants
 mut_se_pbmc <- call_mutations_mgatk(SE_PBMC)
 misc_df_pbmc <- data.frame(rowData(mut_se_pbmc))
-vars_pbmc <- misc_df_pbmc %>%  filter(n_cells_detected >= 5 & strand_correlation > 0.65 & log10(vmr) > -2 & mean_coverage >= 20) %>% pull(variant)
+vars_pbmc <- misc_df_pbmc %>%  filter(n_cells_conf_detected >= 5 & strand_correlation > 0.65 & log10(vmr) > -2 & mean_coverage >= 20) %>% pull(variant)
 
 # Mark transitions
 transition <- c("C>T", "G>A", "A>G", "T>C")
 misc_df_pbmc$transition <- misc_df_pbmc$nucleotide %in% transition
 
-pP <- ggplot(misc_df_pbmc %>%  filter(n_cells_detected >= 5 & mean_coverage >= 20), aes(x = strand_correlation, y = log10(vmr), color = transition)) +
+pP <- ggplot(misc_df_pbmc %>%  filter(n_cells_conf_detected >= 5 & mean_coverage >= 20), aes(x = strand_correlation, y = log10(vmr), color = transition)) +
   geom_point(size = 0.4) + scale_color_manual(values = c("black", "dodgerblue")) +
   labs(color = "HQ", x = "Strand concordance", y = "log VMR") +
   pretty_plot(fontsize = 8) + L_border() +

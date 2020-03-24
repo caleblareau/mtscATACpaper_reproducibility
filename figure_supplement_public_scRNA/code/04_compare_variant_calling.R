@@ -40,14 +40,13 @@ d2_mgatk <- readRDS("../output/Donor2_all_mgatk_variants.rds") %>% pull(variant)
 
 
 # Function to compute cell-cell mtDNA distance as well as whether or not they are in the same colony
-
-compute_mito_dist_cor <- function(variants, af){
+compute_mito_dist_cosine <- function(variants, af){
   
   # Subset variants
   dm <- data.matrix(af[variants,])
   
   # compute the cell-cell correlation
-  cor_mat <- cor(sqrt(dm))
+  cor_mat <- lsa::cosine(sqrt(dm))
   cor_mat[upper.tri(cor_mat, diag = TRUE)] <- 999
   cor_vec <- as.numeric(cor_mat)
   cor_vec <- cor_vec[cor_vec != 999]
@@ -60,14 +59,13 @@ compute_mito_dist_cor <- function(variants, af){
   odf
 }
 
-
 #-----
 # Process for donor 1
 #-----
 
-d1_outcome <- compute_mito_dist_cor(d1_mgatk, af_d1)
-scores_d1 <- join_scores(compute_mito_dist_cor(d1_bcf, af_d1)[,2], compute_mito_dist_cor(d1_fb, af_d1)[,2], 
-                         compute_mito_dist_cor(d1_mgatk, af_d1)[,2], compute_mito_dist_cor(d1_sup, af_d1)[,2])
+d1_outcome <- compute_mito_dist_cosine(d1_mgatk, af_d1)
+scores_d1 <- join_scores(compute_mito_dist_cosine(d1_bcf, af_d1)[,2], compute_mito_dist_cosine(d1_fb, af_d1)[,2], 
+                         compute_mito_dist_cosine(d1_mgatk, af_d1)[,2], compute_mito_dist_cosine(d1_sup, af_d1)[,2])
 
 mmpr1 <- mmdata(scores_d1, d1_outcome$same_colony, modnames = c("bcftools", "FreeBayes", "mgatk", "Supervised"))
 mscurves1 <- evalmod(mmpr1)
@@ -80,9 +78,9 @@ dfo1
 # Process for donor 2
 #-----
 
-d2_outcome <- compute_mito_dist_cor(d2_mgatk, af_d2)
-scores_d2 <- join_scores(compute_mito_dist_cor(d2_bcf, af_d2)[,2], compute_mito_dist_cor(d2_fb, af_d2)[,2], 
-                         compute_mito_dist_cor(d2_mgatk, af_d2)[,2], compute_mito_dist_cor(d2_sup, af_d2)[,2])
+d2_outcome <- compute_mito_dist_cosine(d2_mgatk, af_d2)
+scores_d2 <- join_scores(compute_mito_dist_cosine(d2_bcf, af_d2)[,2], compute_mito_dist_cosine(d2_fb, af_d2)[,2], 
+                         compute_mito_dist_cosine(d2_mgatk, af_d2)[,2], compute_mito_dist_cosine(d2_sup, af_d2)[,2])
 
 mmpr2 <- mmdata(scores_d2, d2_outcome$same_colony, modnames = c("bcftools", "FreeBayes", "mgatk", "Supervised"))
 mscurves2 <- evalmod(mmpr2)

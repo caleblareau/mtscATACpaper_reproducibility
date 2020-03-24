@@ -121,7 +121,7 @@ call_mutations_mgatk <- function(SE, stabilize_variance = TRUE, low_coverage_thr
       vmr = variance/(mean + 0.00000000001),
       mean = round(mean,7),
       variance = round(variance,7),
-      n_cells_detected = Matrix::rowSums(detected == 2),
+      n_cells_conf_detected = Matrix::rowSums(detected == 2),
       n_cells_over_5 = Matrix::rowSums(mmat >= 0.05), 
       n_cells_over_10 = Matrix::rowSums(mmat >= 0.10),
       n_cells_over_20 = Matrix::rowSums(mmat >= 0.20),

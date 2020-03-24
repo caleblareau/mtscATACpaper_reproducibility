@@ -28,7 +28,7 @@ process_clonal_experiment<- function(SE, countc){
   transition <- c("C>T", "G>A", "A>G", "T>C")
   pp_all$transition <- pp_all$nucleotide %in% transition
   
-  p1 <- ggplot(shuf(pp_all) %>% filter(n_cells_detected >= 5), aes(x = strand_correlation, y = log10(vmr), color = transition)) +
+  p1 <- ggplot(shuf(pp_all) %>% filter(n_cells_conf_detected >= 5), aes(x = strand_correlation, y = log10(vmr), color = transition)) +
     geom_point(size = 0.02) + scale_color_manual(values = c("black", "firebrick")) +
     labs(color = "HQ", x = "Strand concordance", y = "log VMR") +
     pretty_plot(fontsize = 7) + L_border() +
@@ -36,7 +36,7 @@ process_clonal_experiment<- function(SE, countc){
     geom_hline(yintercept = -2, linetype = 2) + theme(legend.position = "none")
   cowplot::ggsave2(p1, file = paste0("../plots/call_vars_",countc,"in.pdf"), width = 1.2, height = 1.2)
   
-  pp <- pp_all %>% filter(n_cells_detected >= 5 & log10(vmr) > -2 & strand_correlation >= 0.65)
+  pp <- pp_all %>% filter(n_cells_conf_detected >= 5 & log10(vmr) > -2 & strand_correlation >= 0.65)
   sum(pp$transition)/length(pp$nucleotide)
 
   mut_se2 <- mut_se[pp$variant,]

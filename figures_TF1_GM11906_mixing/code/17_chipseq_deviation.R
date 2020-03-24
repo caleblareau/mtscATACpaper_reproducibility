@@ -22,7 +22,7 @@ names <- gsub("UniPk.narrowPeak.gz", "", gsub("wgEncodeAwgTfbs", "", fileshort))
   str_split_fixed(pattern = ",", 2) %>% data.frame() %>%
   pull(X2) %>% as.character()
 
-se <- readRDS("../data/big_gi/GM11906_combinedSE.rds")
+se <- readRDS("../../../mtscATACpaper_large_data_files/intermediate/GM11906_combinedSE.rds")
 peaks <- rowRanges(se)
 se <- addGCBias(se, genome = BSgenome.Hsapiens.UCSC.hg19)
 
@@ -46,7 +46,7 @@ p1 <- ggplot(odf, aes(x = rank, y = cor, fill = color)) +
   geom_bar(stat = "identity", color = "black") + pretty_plot(fontsize = 8) + L_border() + 
   scale_fill_manual(values = c("firebrick","lightgrey", "dodgerblue3"))+
   theme(legend.position = "none") + labs(x = "Rank", y = "Spearman correlation")
-ggsave(p1, file = "../output/plots/chipseq_correlation_plot.pdf", width = 2, height = 2)
+cowplot::ggsave2(p1, file = "../plots/chipseq_correlation_plot.pdf", width = 2, height = 2)
 
 plot_df <- data.frame(
   level = ifelse(het < 0.1, "alow", ifelse(het < 0.6, "bmid", "chigh")),
@@ -58,4 +58,4 @@ pB <- ggplot(plot_df, aes(x = level, y = MEF)) +
   geom_quasirandom(size = 0.2) +
   geom_boxplot(color = "firebrick", fill = NA, outlier.shape = NA) +
   pretty_plot(fontsize = 8) + L_border() + labs(x = "", y = "MEF2C Deviation Score")
-cowplot::ggsave(pB, file = "../output/plots/MEF2C_plot.pdf", width = 2, height = 2)
+cowplot::ggsave2(pB, file = "../plots/MEF2C_plot.pdf", width = 2, height = 2)

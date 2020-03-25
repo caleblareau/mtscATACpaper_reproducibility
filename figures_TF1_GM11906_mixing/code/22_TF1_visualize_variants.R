@@ -6,13 +6,13 @@ library(ComplexHeatmap)
 library(circlize)
 library(irlba)
 library(Seurat)
+library(stringr)
 
 "%ni%" <- Negate("%in%")
 perc.rank <- function(x) trunc(rank(x))/length(x)
 source("../../global_functions/get_allele_freq_mat.R")
 
 #Import data
-# Import mgatk object
 SE <- cbind(readRDS("../../../mtscATACpaper_large_data_files/source/mgatk_output/Mix_Fix_1h_CR-mtMask_mgatk.rds"), 
             readRDS("../../../mtscATACpaper_large_data_files/source/mgatk_output/Mix_Fix_6h_CR-mtMask_mgatk.rds"))
 
@@ -27,10 +27,9 @@ mmat <- computeAFMutMatrix(SE)
 # Get mutation matrix and threshold
 vars <- read.table("../output/TF1_VMR_processed_variants_ndetect.tsv", header = FALSE, stringsAsFactors = FALSE)[,1]
 afp <- mmat[vars,]
-#afp[afp>0.2] <- 0.2
 
 # Get clusters
-seuratSNN <- function(matSVD, resolution = 0.8, k.param = 20){ # consistent with seurat defaults
+seuratSNN <- function(matSVD, resolution = 1, k.param = 10){ 
   set.seed(1)
   rownames(matSVD) <- make.unique(rownames(matSVD))
   obj <- FindNeighbors(matSVD, k.param = k.param, annoy.metric = "cosine")
@@ -39,25 +38,20 @@ seuratSNN <- function(matSVD, resolution = 0.8, k.param = 20){ # consistent with
 }
 
 cl <- seuratSNN(sqrt(t(afp)))
-table(cl)
-
-afp_svd <- prcomp_irlba(sqrt(afp), n = 10)
-mat <- afp_svd$rotation
-rownames(mat) <- colnames(afp)
-
-clusters <- seuratSNN(mat)
-table(clusters)
+cl <- str_pad(cl, 2, pad = "0")
 
 set.seed(2)
-names_clusters <- unique((cl))
-vec_go <- sample(as.character(jdb_palettes[["lawhoops"]]))[1:length(names_clusters)]
-names(vec_go) <- names_clusters
+names_clusters <- unique(cl)
+colors <- c("#1f77b4","#d62728","#2ca02c","#ff7f0e","#9467bd","#8c564b","#e377c2","#7f7f7f",
+            "#bcbd22","#17becf","#ad494a","#e7ba52","#8ca252","#756bb1","#636363","#aec7e8")
+vec_go <- colors[1:length(names_clusters)]
+names(vec_go) <- sort(names_clusters)
 
 # Make data.frame for stuff
 df <- data.frame(
   cell_id = colnames(afp), 
   cluster_id = as.character(cl)
-) %>% arrange(desc(cl))
+) %>% arrange(cl)
 
 ha_col <- HeatmapAnnotation(cell = as.character(df$cluster_id),
                             col = list(cell = vec_go))
@@ -112,18 +106,20 @@ hm
 dev.off()
 
 
-library(ggplot2)
 library(phangorn)
 library(ape)
-library(ggtree)
 
-# Get group means
+# Get group means 
 matty <- sapply(names(vec_go), function(cluster){
   cells <- df %>% filter(cluster_id == cluster) %>% pull(cell_id) %>% as.character()
   Matrix::rowMeans(sqrt(afp[,cells]))
 })
 
-mito.nj <- phangorn::NJ(dist(t(sqrt(matty))))
-pdf("../plots/tree_me.pdf", width = 4, height = 4)
-plot(mito.nj)
+# Do cosine distance; note that we used sqrt transformation already 
+# when creating the pseudo bulk-cell matrix
+mito.hc <- hclust(dist(lsa::cosine((matty))))
+plot(mito.hc)
+
+pdf("../plots/hierarchical_tree_TF1.pdf", width = 5, height = 5)
+plot(mito.hc)
 dev.off()

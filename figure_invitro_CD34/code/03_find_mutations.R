@@ -19,6 +19,7 @@ import_SE <- function(str){
 SE500 <- SummarizedExperiment::cbind(import_SE("CD34_500_Day08"), import_SE("CD34_500_Day14"))
 SE800 <- SummarizedExperiment::cbind(import_SE("CD34_800_Day08"), import_SE("CD34_800_Day14"), import_SE("CD34_800_Day20"))
 
+# Function to call mutations from the whole experiment
 process_clonal_experiment<- function(SE, countc){
   
   # Call mutations
@@ -29,15 +30,15 @@ process_clonal_experiment<- function(SE, countc){
   pp_all$transition <- pp_all$nucleotide %in% transition
   
   p1 <- ggplot(shuf(pp_all) %>% filter(n_cells_conf_detected >= 5), aes(x = strand_correlation, y = log10(vmr), color = transition)) +
-    geom_point(size = 0.02) + scale_color_manual(values = c("black", "firebrick")) +
+    geom_point(size = 0.02) + scale_color_manual(values = c("black", "dodgerblue")) +
     labs(color = "HQ", x = "Strand concordance", y = "log VMR") +
     pretty_plot(fontsize = 7) + L_border() +
     theme(legend.position = "bottom") + geom_vline(xintercept = 0.65, linetype = 2) + 
     geom_hline(yintercept = -2, linetype = 2) + theme(legend.position = "none")
   cowplot::ggsave2(p1, file = paste0("../plots/call_vars_",countc,"in.pdf"), width = 1.2, height = 1.2)
   
-  pp <- pp_all %>% filter(n_cells_conf_detected >= 5 & log10(vmr) > -2 & strand_correlation >= 0.65)
-  sum(pp$transition)/length(pp$nucleotide)
+  pp <- pp_all %>% filter(n_cells_conf_detected >= 5 & log10(vmr) > -2 & strand_correlation >= 0.65 & mean < 0.9)
+  print(sum(pp$transition)/length(pp$nucleotide))
 
   mut_se2 <- mut_se[pp$variant,]
   saveRDS(mut_se2, file = paste0("../output/filtered_mitoSE_CD34-",countc,".rds"))

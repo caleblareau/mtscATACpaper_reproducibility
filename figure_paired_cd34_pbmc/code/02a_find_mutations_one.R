@@ -28,5 +28,12 @@ SE_CD34 <- cbind(import_mgatk("CD34_G10"), import_mgatk("CD34_H8"))
 mut_se_CD34 <- call_mutations_mgatk(SE_CD34)
 misc_df_CD34 <- data.frame(rowData(mut_se_CD34))
 
-df <- misc_df_CD34 %>% filter(n_cells_conf_detected == 1 & n_cells_over_20 > 0) %>% filter(n_cells_over_5 <= 3) 
+df <- misc_df_CD34 %>% filter(n_cells_conf_detected > 0 & n_cells_conf_detected <= 2 & n_cells_over_20 > 0) %>% filter(n_cells_over_5 <= 3) 
 table(df$nucleotide)
+
+SE_pbmc <- cbind(import_mgatk("PBMC_H10"), import_mgatk("PBMC_H9"))
+mut_se_pbmc <- call_mutations_mgatk(SE_pbmc)
+misc_df_pbmc <- data.frame(rowData(mut_se_pbmc))
+
+df2 <- misc_df_pbmc %>% filter(n_cells_conf_detected > 0 & n_cells_conf_detected <= 2 & n_cells_over_20 > 0) %>% filter(n_cells_over_5 <= 3) 
+table(df2$nucleotide)

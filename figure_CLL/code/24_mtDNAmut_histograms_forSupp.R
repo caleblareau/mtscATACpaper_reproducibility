@@ -1,8 +1,9 @@
 library(data.table)
 library(dplyr)
 
-pt1_vars <- readRDS("output/PT1_specificVariants_forSupplement.rds")
-pt2_vars <- readRDS("output/PT2_specificVariants_forSupplement.rds")
+# Pretty simple plot... plotting distribution of heteroplasmy for top variants
+pt1_vars <- readRDS("../output/PT1_specificVariants_forSupplement.rds")
+pt2_vars <- readRDS("../output/PT2_specificVariants_forSupplement.rds")
 
 plot_df <- data.frame(
   het = c(pt1_vars$X5140G.A, pt1_vars$X14858G.A,
@@ -17,4 +18,7 @@ plot_df$mut <- factor(as.character(plot_df$mut), levels = c("5140G>A", "14858G>A
 p1 <- ggplot(plot_df, aes(x = het)) +
   geom_histogram(binwidth = 10, fill = "black") + facet_wrap(~mut ) +
   pretty_plot(fontsize = 7) 
-cowplot::ggsave(p1, file = "output/mut_histograms.pdf",width = 3.5, height = 1.8)
+cowplot::ggsave2(p1, file = "../plots/mut_histograms.pdf",width = 3.5, height = 1.8)
+
+# For red number in the supplement
+plot_df %>% group_by(mut) %>% summarize(count = sum(het >= 90))

@@ -151,7 +151,11 @@ FeaturePlot(
 #--- 
 mut_se <- call_mutations_mgatk(mgatk_se[,colnames(crc)])
 misc_df <- data.frame(rowData(mut_se))
-filter_df <- misc_df %>% dplyr::filter(n_cells_conf_detected >= 5 & strand_correlation >= 0.65 & log10(vmr) > -2)
+boo <- misc_df$n_cells_conf_detected >= 5 & misc_df$strand_correlation >= 0.65 & log10(misc_df$vmr) > -2
+saveRDS(mut_se[boo,], file = "../output/27March_mutSE_filt_CRC.rds")
+
+
+filter_df <- misc_df %>% dplyr::filter(boo)
 dim(filter_df)
 
 full_df <- data.frame(

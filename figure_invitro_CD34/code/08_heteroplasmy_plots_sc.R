@@ -24,5 +24,5 @@ p1 <- ggplot(pdf, aes(x = timepoint, y = value*100, color = timepoint)) +
   pretty_plot(fontsize = 8) + L_border() +
   labs(x = "Timepoint", y = "Heteroplasmy") +
   theme(legend.position = "none")
-cowplot::ggsave2(p1, file = "../plots/CD34_800_quasirandom_new.pdf", width = 3.5, height = 1.7)
+cowplot::ggsave2(p1, file = "../plots/CD34_800_quasirandom_new.pdf", width = 2.2, height = 1.7)
 

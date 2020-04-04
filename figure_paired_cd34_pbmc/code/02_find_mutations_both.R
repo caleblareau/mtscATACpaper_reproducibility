@@ -86,6 +86,13 @@ rowData(mspf)$called_in_PBMC <- rownames(mspf) %in% vars_pbmc
 saveRDS(mscf, file = "../output/filteredCD34_mgatk_calls.rds")
 saveRDS(mspf, file = "../output/filteredpbmcs_mgatk_calls.rds")
 
+##---
+# Make plot of allele frequencies
+##---
+
+mscf <- readRDS("../output/filteredCD34_mgatk_calls.rds")
+mspf <- readRDS("../output/filteredpbmcs_mgatk_calls.rds")
+
 mean_df <- data.frame(
   CD34 = rowData(mscf)$mean,
   PBMC = rowData(mspf)$mean, 
@@ -94,10 +101,12 @@ mean_df <- data.frame(
 ) %>% mutate(log10_FC = log10(CD34/PBMC))  %>% arrange(desc(log10_FC))
 
 cor(log10(mean_df$PBMC), log10(mean_df$CD34))
-p1 <- ggplot(mean_df, aes(x = CD34, y = PBMC, color = variant %in% c("3244G>A", "11318T>G", "174C>T"))) +
+cor((mean_df$PBMC), (mean_df$CD34))
+
+p1 <- ggplot(mean_df, aes(x = CD34, y = PBMC, color = variant %in% c("12868G>A", "2788C>A", "3209A>G"))) +
   geom_point(size = 0.1) + scale_x_log10(limits = c(1e-04, 0.02)) + scale_y_log10(limits = c(1e-04, 0.02)) +
   geom_abline(intercept = 0, slope = 1, linetype = 2) + 
   pretty_plot(fontsize = 7) + L_border() + scale_color_manual(values = c("black", "firebrick")) +
   labs(x = "CD34 Heteroplasmy", y = "PBMC Heteroplasmy") + theme(legend.position = "none")
 
-cowplot::ggsave2(p1, file = "../plots/PBMC_CD34_alleleFrequency.pdf", width = 1.8, height = 1.8)
+cowplot::ggsave2(p1, file = "../plots/PBMC_CD34_alleleFrequency.pdf", width = 1.5, height = 1.4)

@@ -57,7 +57,9 @@ pbmc.atac <- RunSVD(
 
 pbmc.atac <- FindNeighbors(object = pbmc.atac, reduction = 'lsi', dims = 2:30)
 pbmc.atac <- RunUMAP(object = pbmc.atac, reduction = 'lsi', dims = 2:30)
+pbmc.atac <- FindClusters(object = pbmc.atac, verbose = FALSE, algorithm = 3, resolution = 0.8)
 pbmc.atac <- FindClusters(object = pbmc.atac, verbose = FALSE, algorithm = 3, resolution = 0.1)
+
 DimPlot(object = pbmc.atac, label = TRUE) + NoLegend()
 
 
@@ -76,21 +78,10 @@ celltype.predictions <- TransferData(anchorset = transfer.anchors, refdata = pbm
                                      weight.reduction = pbmc.atac[['lsi']],
                                      dims = 2:30)
 pbmc.atac <- AddMetaData(pbmc.atac, metadata = celltype.predictions)
-d <- pbmc.atac@meta.data
 
-# Coarsen lineage assignments
-d$Tcell <- d$prediction.score.Memory_CD4_Tcell+ d$prediction.score.GammaDelta_Tcell + d$prediction.score.Naive_CD4_Tcell + d$prediction.score.Treg + d$prediction.score.Cytotoxic_CD8_Tcell
-d$Bcell <- d$prediction.score.Memory_Bcell+ d$prediction.score.activated_Bcell
-d$Monocyte <- d$prediction.score.CD14_monocyte + d$prediction.score.pDC + d$prediction.score.CD16_monocyte + d$prediction.score.Dendritic_cell
-d$NKcell <- d$prediction.score.NK_cell
-
-d$lineage_assignment_rna <- case_when(
-  d$Tcell > 0.8 ~ "Tcell" ,
-  d$Monocyte > 0.8 ~ "Monocyte" ,
-  d$Bcell > 0.8 ~ "Bcell" ,
-  d$NKcell > 0.4 ~ "NKcell" , # make this more inclusive as a lot of the ambiguity is between effector T cells and NK cells
-  TRUE ~ "other"
-)
+d <- data.frame(pbmc.atac@meta.data, pbmc.atac@reductions$umap@cell.embeddings)
+ggplot(d, aes(x = UMAP_1, y = UMAP_2, color = ATAC_snn_res.0.5)) +
+  geom_point() + scale_color_manual(values = jdb_palette("corona")[29:16])
 
 d$lineage_assignment_atac <- case_when(
   d$seurat_clusters  %in% c(0,1) ~ "Tcell" ,

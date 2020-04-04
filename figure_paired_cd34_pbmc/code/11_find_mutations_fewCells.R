@@ -7,6 +7,7 @@ library(circlize)
 library(data.table)
 library(ggrepel)
 source("../../global_functions/variant_calling.R")
+load("../output/CD34_umap_embedding_granja.rda")
 
 "%ni%" <- Negate("%in%")
 perc.rank <- function(x) trunc(rank(x))/length(x)
@@ -28,12 +29,15 @@ SE_CD34 <- cbind(import_mgatk("CD34_G10"), import_mgatk("CD34_H8"))
 mut_se_CD34 <- call_mutations_mgatk(SE_CD34)
 misc_df_CD34 <- data.frame(rowData(mut_se_CD34))
 
-df <- misc_df_CD34 %>% filter(n_cells_conf_detected > 0 & n_cells_conf_detected <= 2 & n_cells_over_20 > 0) %>% filter(n_cells_over_5 <= 3) 
+df <- misc_df_CD34 %>% filter(n_cells_conf_detected > 0 & n_cells_conf_detected <= 3 & n_cells_over_20 > 0) %>% filter(n_cells_over_5 <= 5) 
 table(df$nucleotide)
+dim(df)
+rare_variant_cells <- names(cs)[cs > 0]
 
-SE_pbmc <- cbind(import_mgatk("PBMC_H10"), import_mgatk("PBMC_H9"))
-mut_se_pbmc <- call_mutations_mgatk(SE_pbmc)
-misc_df_pbmc <- data.frame(rowData(mut_se_pbmc))
+plot_df$rv_cell <- rownames(plot_df) %in% rare_variant_cells
 
-df2 <- misc_df_pbmc %>% filter(n_cells_conf_detected > 0 & n_cells_conf_detected <= 2 & n_cells_over_20 > 0) %>% filter(n_cells_over_5 <= 3) 
-table(df2$nucleotide)
+plot_df %>% group_by(Clusters) %>% summarize(rv = sum(rv_cell), count = n()) %>%
+  ungroup() %>% mutate(prop = rv/sum(rv), total = count/sum(count)) %>%
+  mutate(FC = prop/total)
+
+

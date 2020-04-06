@@ -74,6 +74,8 @@ make_informative_variant_plot <- function(cluster_names, afin, what){
 }
 
 
+make_informative_variant_plot(cluster_name,afin,"altogether")
+
 make_informative_variant_plot(plot_df$mito_cluster,afin2,"CD34")
 make_informative_variant_plot(sdf$mito_cluster,afin1,"PBMC")
 

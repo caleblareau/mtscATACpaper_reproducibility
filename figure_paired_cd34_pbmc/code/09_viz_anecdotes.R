@@ -48,3 +48,11 @@ make_4plot_grid("119",  "12868G>A", "12868G-A")
 make_4plot_grid("008",  "2788C>A", "2788C-A")
 make_4plot_grid("032",  "3209A>G", "3209A-G")
 
+
+sum(cd34_clone_df$mito_cluster == "119")
+sum(cd34_clone_df$mito_cluster == "008")
+sum(cd34_clone_df$mito_cluster == "032")
+
+sum(pbmc_clone_df$mito_cluster == "119")
+sum(pbmc_clone_df$mito_cluster == "008")
+sum(pbmc_clone_df$mito_cluster == "032")

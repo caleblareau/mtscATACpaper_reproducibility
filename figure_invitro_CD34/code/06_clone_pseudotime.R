@@ -11,11 +11,9 @@ mdf <- merge(dd, df_ery, by.x = "barcode",by.y = "row.names")
 # Fine putative clusters of interest
 mdf %>% group_by(cluster,Group) %>% summarize(count = n()) %>%
   reshape2::dcast(cluster~Group, value.var = "count", fill = 0) -> odf
-odf %>% arrange(desc(my4))
-odf %>% filter(cluster %in% c(10, 20, 30))
+odf %>% filter(prog > 2) %>% arrange(desc(my4/(ery4 + ery5 + ery6 + 1)))
 
-mdf %>% group_by(cluster,Group, timepoint) %>% summarize(count = n()) %>% data.frame() %>%
-  dplyr::filter(cluster %in% c("20", "10", "30"))
+
 
 # Summarize more values per clone
 mdf[complete.cases(mdf),] %>% group_by(cluster, timepoint) %>%
@@ -41,9 +39,16 @@ plot_d$bi3 <- plot_d$barcode  %in% pull_barcodes_dd(3,30)
 plot_d$ery1 <- plot_d$barcode  %in% pull_barcodes_dd(1, 10)
 plot_d$ery2 <- plot_d$barcode  %in% pull_barcodes_dd(2, 10)
 plot_d$ery3 <- plot_d$barcode  %in% pull_barcodes_dd(3,10)
-plot_d$my1 <- plot_d$barcode  %in% pull_barcodes_dd(1, 20)
-plot_d$my2 <- plot_d$barcode  %in% pull_barcodes_dd(2, 20)
-plot_d$my3 <- plot_d$barcode  %in% pull_barcodes_dd(3,20)
+plot_d$my1 <- plot_d$barcode  %in% pull_barcodes_dd(1, 54)
+plot_d$my2 <- plot_d$barcode  %in% pull_barcodes_dd(2, 54)
+plot_d$my3 <- plot_d$barcode  %in% pull_barcodes_dd(3,54)
+
+# find mutations associated with the anecdote clones that were extracted
+afin <- assays(readRDS("../output/filtered_mitoSE_CD34-800.rds"))[["allele_frequency"]]
+
+round(Matrix::rowMeans(afin[,as.character(plot_d %>% dplyr::filter(my3) %>% pull(barcode))]) %>% sort(), 3) %>% tail()
+round(Matrix::rowMeans(afin[,as.character(plot_d %>% dplyr::filter(ery3) %>% pull(barcode))]) %>% sort(), 3) %>% tail()
+round(Matrix::rowMeans(afin[,as.character(plot_d %>% dplyr::filter(bi3) %>% pull(barcode))]) %>% sort(), 3) %>% tail()
 
 # Recode names for convience
 plot_d$ery12 <- ifelse(plot_d$ery1, "Ery1", ifelse(plot_d$ery2, 'Ery2', 'A'))
@@ -81,13 +86,6 @@ cowplot::ggsave2(cowplot::plot_grid(pe12, pm12, pb12, pe3, pm3, pb3, nrow = 2),
                 filename = "../plots/800_raster_clones.png",
                 width = 4.2, height = 2.8, units = "in", dpi = 1000)
 
-# find mutations associated with the anecdote clones that were extracted
-afin <- assays(readRDS("../output/filtered_mitoSE_CD34-800.rds"))[["allele_frequency"]]
-
-
-round(Matrix::rowMeans(afin[,as.character(plot_d %>% dplyr::filter(ery3) %>% pull(barcode))]) %>% sort(), 3) %>% tail()
-round(Matrix::rowMeans(afin[,as.character(plot_d %>% dplyr::filter(my3) %>% pull(barcode))]) %>% sort(), 3) %>% tail()
-round(Matrix::rowMeans(afin[,as.character(plot_d %>% dplyr::filter(bi3) %>% pull(barcode))]) %>% sort(), 3) %>% tail()
 
 #------
 

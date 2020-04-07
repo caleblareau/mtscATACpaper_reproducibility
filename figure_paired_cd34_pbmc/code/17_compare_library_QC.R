@@ -4,6 +4,14 @@ library(dplyr)
 library(ggbeeswarm)
 library(SummarizedExperiment)
 
+# count fraction of cells retained by mito filter
+rbind(fread("../output/barcode_qc/CD34_G10.barcode_qc.tsv"),
+      fread("../output/barcode_qc/CD34_H8.barcode_qc.tsv")) %>% filter(FRIP > 0.25 & depth > 1000) %>% pull(keep) %>% mean
+
+rbind(fread("../output/barcode_qc/PBMC_H10.barcode_qc.tsv"),
+      fread("../output/barcode_qc/PBMC_H9.barcode_qc.tsv")) %>% filter(FRIP > 0.60 & depth > 1000) %>% pull(keep) %>% mean
+
+
 # Pull meta data per cell  from cellranger output
 import_sc <- function(lib){
   dt <- fread(paste0("../data/singlecell_sumstats/",lib,"_v12-mtMask_singlecell.csv.gz"))
@@ -33,6 +41,8 @@ mdf_cd34 <- merge(merge(sdf, single_cell_metrics, by = "barcode"), mgatk_complex
 mdf_pbmc$what <- "PBMC"
 mdf_cd34$what <- "CD34"
 mdf_plot <- rbind(mdf_cd34, mdf_pbmc)
+mdf_plot %>% group_by(what) %>% summarize(mean(passed_filters), median(as.numeric(as.character(PERCENT_DUPLICATION)), NA.rm = TRUE))
+
 
 # Visualize the percent duplication of reads
 p1 <- ggplot(mdf_plot, aes(x = what, y = as.numeric(as.character(PERCENT_DUPLICATION))*100)) +

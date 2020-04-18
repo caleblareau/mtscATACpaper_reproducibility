@@ -1,6 +1,6 @@
 library(stringr)
 library(data.table)
-library(dpllyr)
+library(dplyr)
 library(Matrix)
 library(SummarizedExperiment)
 load("../output/trajectory_inferences.18march2020.rda")

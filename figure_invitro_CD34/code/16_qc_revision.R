@@ -17,6 +17,5 @@ import_mk <- function(lib){
 
 # Import for the PBMC libraries
 mgatk_complexity_metrics <- rbind(import_mk("CLL_PT1_CD19pos"),import_mk("CLL_PT2_CD19pos"))
-
-merge <- merge(sdf, mgatk_complexity_metrics, by = "barcode")
+mean(as.numeric(as.character(mgatk_complexity_metrics$PERCENT_DUPLICATION)))
 

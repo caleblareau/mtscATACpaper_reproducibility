@@ -1,12 +1,14 @@
 # mtscATACpaper reproducibility repository
 
+Updated: April 18, 2020
+
 ## About
 
 This repository contains all code needed to reproduce all analyses from this work:
 
-```
-C. A. Lareau*, L. S. Ludwig*, et al. Massively parallel joint single-cell mitochondrial DNA genotyping and chromatin profiling reveals properties of human clonal variation. Under review. 2020. 
-```
+
+C. A. Lareau*, L. S. Ludwig*, _et al._ Massively parallel joint single-cell mitochondrial DNA genotyping and chromatin profiling reveals properties of human clonal variation. **Under review.** 2020. 
+
 
 Each folder corresponds to a particular dataset or analysis mode that is presented in this work. Rscripts can be found in the `code` folder that can be executed sequentially to reproduce analyses in part or in whole. Intermediate output files are also hosted for ease of use. 
 
@@ -39,6 +41,10 @@ Once this file is downloaded (~36 Gb), place the extracted folder in the same di
 
 The code assumes a relative file path with this organization. 
 
+
+## See also
+
+The main inputs are assumed to be output files from [mgatk](https://github.com/caleblareau/mgatk) and [CellRanger-ATAC](https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/what-is-cell-ranger-atac).
 
 ## Contact
 

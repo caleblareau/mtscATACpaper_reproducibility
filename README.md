@@ -1,6 +1,6 @@
 # mtscATACpaper reproducibility repository
 
-Updated: April 18, 2020
+Updated: April 19, 2020
 
 ## About
 
@@ -15,7 +15,7 @@ Each folder corresponds to a particular dataset or analysis mode that is present
 
 ## Setup
 
-To best use this resource, we recommend pairing with large data files (that are not compatible with github as they exceed 100Mb). A `.tar.gz` of these files is [available at this link](<<dropbox link>>).
+To best use this resource, we recommend pairing with large data files (that are not compatible with github as they exceed 100Mb). A `.tar.gz` of these files is [available at this link](https://www.dropbox.com/s/f1f5ucfp5cvb6l5/mtscATACpaper_large_data_files.tar.gz?dl=0).
 
 Once this file is downloaded (~36 Gb), place the extracted folder in the same directory as this repository (as shown below):
 

@@ -26,14 +26,14 @@ ha_col <- HeatmapAnnotation(cell = as.character(df$cluster_id),
                             col = list(cell = colors))
 
 afp[afp < 0.01] <- 0
-afp[afp > 0.1] <- 0.1
+#afp[afp > 0.1] <- 0.1
 
 pdf(paste0("../plots/complete_mito_heatmap.pdf"), width=3.2, height=2)
 hm <- Heatmap((data.matrix(afp)[,as.character(df$cell_id)]),  
               col=as.character(jdb_palette("solar_rojos",type="continuous")),
               show_row_names = TRUE, 
               top_annotation=ha_col,
-              cluster_columns = TRUE,
+              cluster_columns = cluster_within_group((data.matrix(afp)[,as.character(df$cell_id)]), df$cluster_id),
               name = "AF",use_raster = FALSE,
               row_names_gp = gpar(fontsize = 4),
               cluster_rows = TRUE, 

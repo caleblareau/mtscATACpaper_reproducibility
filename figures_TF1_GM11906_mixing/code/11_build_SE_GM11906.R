@@ -3,6 +3,7 @@ library(SummarizedExperiment)
 library(GenomicRanges)
 library(dplyr)
 library(ggrastr)
+library(BuenColors)
 
 peaks_gr <- diffloop::bedToGRanges("../data/merrf_tf1.fixedwidthpeaks.bed")
 

@@ -1,6 +1,6 @@
 # mtscATACpaper reproducibility repository
 
-Updated: April 19, 2020
+Updated: August 29, 2020
 
 ## About
 

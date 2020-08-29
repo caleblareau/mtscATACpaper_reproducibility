@@ -4,10 +4,10 @@ Updated: April 19, 2020
 
 ## About
 
-This repository contains all code needed to reproduce all analyses from this work:
+This repository contains all code needed to reproduce all analyses [from this work](https://www.nature.com/articles/s41587-020-0645-6):
 
 
-C. A. Lareau*, L. S. Ludwig*, _et al._ Massively parallel joint single-cell mitochondrial DNA genotyping and chromatin profiling reveals properties of human clonal variation. **Under review.** 2020. 
+C. A. Lareau*, L. S. Ludwig*, _et al._ Massively parallel single-cell mitochondrial DNA genotyping and chromatin profiling. **Nature Biotechnology.** DOI: 10.1038/s41587-020-0645-6. 
 
 
 Each folder corresponds to a particular dataset or analysis mode that is presented in this work. Rscripts can be found in the `code` folder that can be executed sequentially to reproduce analyses in part or in whole. Intermediate output files are also hosted for ease of use. 
@@ -15,9 +15,9 @@ Each folder corresponds to a particular dataset or analysis mode that is present
 
 ## Setup
 
-To best use this resource, we recommend pairing with large data files (that are not compatible with github as they exceed 100Mb). A `.tar.gz` of these files is [available at this link](https://www.dropbox.com/s/f1f5ucfp5cvb6l5/mtscATACpaper_large_data_files.tar.gz?dl=0).
+To best use this resource, we recommend pairing with large data files (that are not compatible with github as they exceed 100Mb). These files are available from the [Open Science Framework](https://osf.io/bupge/).
 
-Once this file is downloaded (~36 Gb), place the extracted folder in the same directory as this repository (as shown below):
+Once one downloads the zip archieve from OSF (~36 Gb), place the extracted folder in the same directory as this repository named `mtscATACpaper_large_data_files` (as shown below). This will enable running 
 
 ```
 .

@@ -17,7 +17,7 @@ Each folder corresponds to a particular dataset or analysis mode that is present
 
 To best use this resource, we recommend pairing with large data files (that are not compatible with github as they exceed 100Mb). These files are available from the [Open Science Framework](https://osf.io/bupge/).
 
-Once one downloads the zip archieve from OSF (~36 Gb), place the extracted folder in the same directory as this repository named `mtscATACpaper_large_data_files` (as shown below). This will enable running 
+Once one downloads the zip archieve from OSF (~36 Gb), place the extracted folder in the same directory as this repository named `mtscATACpaper_large_data_files` (as shown below). This will enable running custom code to reproduce items in the output folders. 
 
 ```
 .

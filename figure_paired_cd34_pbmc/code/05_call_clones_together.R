@@ -31,6 +31,7 @@ table(cluster_name)
 
 # Import meta data
 sdf <- readRDS("../output/PBMCatac_SignacSeurat_labelTransfer.rds")
+sdf <- sdf[colnames(afin1),] #make sure the order of cells is the same
 sdf$mito_cluster <- cluster_name[1:dim(afin1)[2]]
 
 load("../output/CD34_umap_embedding_granja.rda")
